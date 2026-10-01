@@ -608,9 +608,8 @@ class TgCall(PyTgCalls):
                         media.message_id = 0
                 except Exception as e:
                     logger.debug(
-                        f"Could not delete previous message in {chat_id}: {e}")
-
-                                if not media:
+                        f"Could not delete previous message in {chat_id}: {e}"
+        if not media:
             if await db.get_autoplay(chat_id):
                 try:
                     queries = [
@@ -651,7 +650,6 @@ class TgCall(PyTgCalls):
                         f"Could not send auto_end message in {chat_id}: {e}"
                     )
             return await self.stop(chat_id)
-            
             
 
                 _lang = await lang.get_lang_for(getattr(media, "user_id", None), chat_id)
