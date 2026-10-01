@@ -572,33 +572,51 @@ class TgCall(PyTgCalls):
                             await db.rm_chat(chat_id)
                         return
 
-                media = queue.get_next(chat_id)
+                        media = queue.get_next(chat_id)
 
-                if not media and loop_mode == 10:
-                    all_items = queue.get_all(chat_id)
-                    if all_items:
-                        first_track = all_items[0]
-                        _lang = await lang.get_lang_for(getattr(first_track, "user_id", None), chat_id)
-                        try:
-                            msg = await app.send_message(chat_id=target_chat, text="🔁 Looping queue...")
-                            if not first_track.file_path:
-                                is_live = getattr(
-                                    first_track, 'is_live', False)
-                                first_track.file_path = await yt.download(
-                                    first_track.id,
-                                    is_live=is_live,
-                                    video=getattr(first_track, 'video', False),
-                                )
-                            first_track.message_id = msg.id
-                            await self.play_media(chat_id, msg, first_track, message_chat_id=message_chat_id)
-                        except errors.ChannelPrivate:
-                            logger.warning(
-                                f"Bot removed from {chat_id}, cleaning up")
-                            await self.leave_call(chat_id)
-                            await db.rm_chat(chat_id)
-                        return
+        if not media and loop_mode == 10:
+            all_items = queue.get_all(chat_id)
+            if all_items:
+                first_track = all_items[0]
+                _lang = await lang.get_lang_for(
+                    getattr(first_track, "user_id", None), chat_id
+                )
+                try:
+                    msg = await app.send_message(
+                        chat_id=target_chat,
+                        text="🎵 Looping queue..."
+                    )
+
+                    if not first_track.file_path:
+                        is_live = getattr(first_track, "is_live", False)
+                        first_track.file_path = await yt.download(
+                            first_track.id,
+                            is_live=is_live,
+                            video=getattr(first_track, "video", False),
+                        )
+
+                    first_track.message_id = msg.id
+                    await self.play_media(
+                        chat_id,
+                        msg,
+                        first_track,
+                        message_chat_id=message_chat_id
+                    )
+
+                except errors.ChannelPrivate:
+                    logger.warning(
+                        f"Bot removed from {chat_id}, cleaning up"
+                    )
+                    await self.leave_call(chat_id)
+                    await db.rm_chat(chat_id)
+                    return
+
         if media and getattr(media, "message_id", 0):
-            await app.delete_messages(chat_id=chat_id, message_ids=media.message_id, revoke=True)
+            await app.delete_messages(
+                chat_id=chat_id,
+                message_ids=media.message_id,
+                revoke=True
+            )
             media.message_id = 0
 
         if not media:
