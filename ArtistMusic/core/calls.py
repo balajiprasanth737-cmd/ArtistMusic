@@ -609,6 +609,7 @@ class TgCall(PyTgCalls):
                 except Exception as e:
                     logger.debug(
                         f"Could not delete previous message in {chat_id}: {e}"
+                    )         
         if not media:
             if await db.get_autoplay(chat_id):
                 try:
