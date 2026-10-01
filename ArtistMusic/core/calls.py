@@ -597,16 +597,10 @@ class TgCall(PyTgCalls):
                             await self.leave_call(chat_id)
                             await db.rm_chat(chat_id)
                         return
-                try:
-            if media and media.message_id:
-                await app.delete_messages(
-                    chat_id=chat_id,
-                    message_ids=media.message_id,
-                    revoke=True,
-                )
-                media.message_id = 0
-        except Exception as e:
-            logger.debug(f"Could not delete previous message in {chat_id}: {e}")
+                        
+        if media and getattr(media, "message_id", 0):
+            await app.delete_messages(chat_id=chat_id, message_ids=media.message_id, revoke=True)
+            media.message_id = 0
 
         if not media:
 
