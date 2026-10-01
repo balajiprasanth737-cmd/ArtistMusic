@@ -14,11 +14,8 @@
   # of this source code without permission is prohibited.
   # ==========================================================
 from pyrogram import filters, types
-from ArtistMusic import app
+from ArtistMusic import app, db
 from ArtistMusic.helpers import can_manage_vc
-
-# In-memory storage for active autoplay chats
-AUTOPLAY_CHATS = set()
 
 @app.on_message(filters.command(["autoplay", "cautoplay"]) & filters.group)
 @can_manage_vc
@@ -29,18 +26,19 @@ async def _autoplay(_, m: types.Message):
         pass
 
     chat_id = m.chat.id
+    current = await db.get_autoplay(chat_id)
+    new_state = not current
+    await db.set_autoplay(chat_id, new_state)
 
-    if chat_id in AUTOPLAY_CHATS:
-        AUTOPLAY_CHATS.remove(chat_id)
-        text = (
-            "<blockquote>⏹ <b>Autoplay: OFF</b>\n\n"
-            "Autoplay disabled. Playback will stop when queue ends.</blockquote>"
-        )
-    else:
-        AUTOPLAY_CHATS.add(chat_id)
+    if new_state:
         text = (
             "<blockquote>▶ <b>Autoplay: ON</b>\n\n"
             "Autoplay enabled! Continuous playback is active.</blockquote>"
+        )
+    else:
+        text = (
+            "<blockquote>⏹ <b>Autoplay: OFF</b>\n\n"
+            "Autoplay disabled. Playback will stop when queue ends.</blockquote>"
         )
 
     await m.reply_text(text)
