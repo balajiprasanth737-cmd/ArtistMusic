@@ -597,25 +597,29 @@ class TgCall(PyTgCalls):
                             await self.leave_call(chat_id)
                             await db.rm_chat(chat_id)
                         return
+        try:
+            if media and media.message_id:
+                await app.delete_messages(
+                    chat_id=chat_id,
+                    message_ids=media.message_id,
+                    revoke=True,
+                )
+                media.message_id = 0
+        except Exception as e:
+            logger.debug(
+                f"Could not delete previous message in {chat_id}: {e}"
+            )
 
-                try:
-                    if media and media.message_id:
-                        await app.delete_messages(
-                            chat_id=chat_id,
-                            message_ids=media.message_id,
-                            revoke=True,
-                        )
-                        media.message_id = 0
-                except Exception as e:
-                    logger.debug(
-                        f"Could not delete previous message in {chat_id}: {e}"
-                    )         
         if not media:
             if await db.get_autoplay(chat_id):
                 try:
                     queries = [
-                        "tamil trending songs", "latest tamil songs",
-                        "anirudh hits", "ar rahman hits", "harris jayaraj hits", "yuvan hits"
+                        "tamil trending songs",
+                        "latest tamil songs",
+                        "anirudh hits",
+                        "ar rahman hits",
+                        "harris jayaraj hits",
+                        "yuvan hits",
                     ]
                     q = random.choice(queries)
                     auto_track = await yt.search(q, 0)
@@ -633,7 +637,9 @@ class TgCall(PyTgCalls):
                                 )
                             except Exception:
                                 ap_msg = None
-                            return await self.play_media(chat_id, ap_msg, auto_track, message_chat_id=target_chat)
+                            return await self.play_media(
+                                chat_id, ap_msg, auto_track, message_chat_id=target_chat
+                            )
                 except Exception as ap_e:
                     logger.error(f"Autoplay failed: {ap_e}")
 
@@ -650,8 +656,9 @@ class TgCall(PyTgCalls):
                     logger.debug(
                         f"Could not send auto_end message in {chat_id}: {e}"
                     )
-            return await self.stop(chat_id)
-            
+                return await self.stop(chat_id)
+
+
 
                 _lang = await lang.get_lang_for(getattr(media, "user_id", None), chat_id)
                 msg = None
