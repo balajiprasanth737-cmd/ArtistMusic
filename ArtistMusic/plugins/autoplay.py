@@ -13,14 +13,14 @@
   # Unauthorized copying, modification, or redistribution
   # of this source code without permission is prohibited.
   # ==========================================================
-
 from pyrogram import filters, types
-
-from ArtistMusic import app, db
+from ArtistMusic import app
 from ArtistMusic.helpers import can_manage_vc
 
+# In-memory storage for active autoplay chats
+AUTOPLAY_CHATS = set()
 
-@app.on_message(filters.command(["autoplay", "cautoplay"]) & filters.group & ~app.bl_users)
+@app.on_message(filters.command(["autoplay", "cautoplay"]) & filters.group)
 @can_manage_vc
 async def _autoplay(_, m: types.Message):
     try:
@@ -28,43 +28,19 @@ async def _autoplay(_, m: types.Message):
     except Exception:
         pass
 
-    # Determine target chat_id:
-    # - /cautoplay → explicitly use linked channel
-    # - /autoplay  → use channel if channel-play is active, else group
-    is_explicit_channel = m.command[0].lower() == "cautoplay"
     chat_id = m.chat.id
 
-    channel_id = await db.get_cmode(m.chat.id)
-
-    if is_explicit_channel:
-        if channel_id is None:
-            return await m.reply_text(
-                "<blockquote>❌ Channel play is not enabled.\n\n"
-                "Use /channelplay to enable it first.</blockquote>"
-            )
-        chat_id = channel_id
-    elif channel_id is not None:
-        # /autoplay in a group that has channel-play active → target channel
-        chat_id = channel_id
-
-    current = await db.get_autoplay(chat_id)
-
-    # Toggle autoplay
-    new_state = not current
-    await db.set_autoplay(chat_id, new_state)
-
-    if new_state:
-        text = (
-            "<blockquote>🎵 <b>Autoplay: ON</b>\n\n"
-            "Ek baar /play karo — baaki songs apne aap bajte rahenge!\n"
-            "Queue khatam hone par main automatically similar song dhundh kar bajata rahunga.\n\n"
-            "Band karne ke liye dobara /autoplay karo.</blockquote>"
-        )
-    else:
+    if chat_id in AUTOPLAY_CHATS:
+        AUTOPLAY_CHATS.remove(chat_id)
         text = (
             "<blockquote>⏹ <b>Autoplay: OFF</b>\n\n"
-            "Autoplay band kar diya. Queue khatam hone par playback ruk jayega.\n\n"
-            "Dobara chalu karne ke liye /autoplay karo.</blockquote>"
+            "Autoplay disabled. Playback will stop when queue ends.</blockquote>"
+        )
+    else:
+        AUTOPLAY_CHATS.add(chat_id)
+        text = (
+            "<blockquote>▶ <b>Autoplay: ON</b>\n\n"
+            "Autoplay enabled! Continuous playback is active.</blockquote>"
         )
 
     await m.reply_text(text)
