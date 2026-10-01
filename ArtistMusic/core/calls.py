@@ -16,6 +16,7 @@
 
 import asyncio
 import logging
+import random
 from ntgcalls import ConnectionNotFound, TelegramServerError
 from pyrogram import enums, errors
 from pyrogram.errors import MessageIdInvalid
@@ -609,19 +610,49 @@ class TgCall(PyTgCalls):
                     logger.debug(
                         f"Could not delete previous message in {chat_id}: {e}")
 
-                if not media:
-                    if config.AUTO_END:
-                        _lang = await lang.get_lang(chat_id)
-                        try:
-                            await app.send_message(
-                                chat_id=chat_id,
-                                text=_lang.get(
-                                    "auto_end", "✅ Queue finished. Stream ended automatically.")
-                            )
-                        except Exception as e:
-                            logger.debug(
-                                f"Could not send auto_end message in {chat_id}: {e}")
-                    return await self.stop(chat_id)
+                                if not media:
+            if await db.get_autoplay(chat_id):
+                try:
+                    queries = [
+                        "tamil trending songs", "latest tamil songs",
+                        "anirudh hits", "ar rahman hits", "harris jayaraj hits", "yuvan hits"
+                    ]
+                    q = random.choice(queries)
+                    auto_track = await yt.search(q, 0)
+                    if auto_track:
+                        auto_track.file_path = await yt.download(
+                            auto_track.id,
+                            is_live=auto_track.is_live,
+                            video=False,
+                        )
+                        if auto_track.file_path:
+                            try:
+                                ap_msg = await app.send_message(
+                                    chat_id=target_chat,
+                                    text=f"▶ <b>Autoplay:</b> Playing {auto_track.title[:30]}",
+                                )
+                            except Exception:
+                                ap_msg = None
+                            return await self.play_media(chat_id, ap_msg, auto_track, message_chat_id=target_chat)
+                except Exception as ap_e:
+                    logger.error(f"Autoplay failed: {ap_e}")
+
+            if config.AUTO_END:
+                _lang = await lang.get_lang_for(chat_id)
+                try:
+                    await app.send_message(
+                        chat_id=chat_id,
+                        text=_lang.get(
+                            "auto_end", "✅ Queue finished. Stream ended."
+                        ),
+                    )
+                except Exception as e:
+                    logger.debug(
+                        f"Could not send auto_end message in {chat_id}: {e}"
+                    )
+            return await self.stop(chat_id)
+            
+            
 
                 _lang = await lang.get_lang_for(getattr(media, "user_id", None), chat_id)
                 msg = None
