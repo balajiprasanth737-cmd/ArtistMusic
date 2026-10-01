@@ -660,3 +660,15 @@ class MongoDB:
         await self.get_sudoers()
         
         logger.info(f"✅ Cache loaded: {len(self.chats)} chats, {len(self.users)} users, {len(self.blacklisted)} blacklisted.")
+
+    async def get_autoplay(self, chat_id: int) -> bool:
+        doc = await self.db.autoplay.find_one({"chat_id": chat_id})
+        return bool(doc.get("autoplay", False)) if doc else False
+
+    async def set_autoplay(self, chat_id: int, state: bool):
+        await self.db.autoplay.update_one(
+            {"chat_id": chat_id},
+            {"$set": {"autoplay": state}},
+            upsert=True,
+        )
+        
