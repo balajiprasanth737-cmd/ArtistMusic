@@ -597,7 +597,6 @@ class TgCall(PyTgCalls):
                             await self.leave_call(chat_id)
                             await db.rm_chat(chat_id)
                         return
-                        
         if media and getattr(media, "message_id", 0):
             await app.delete_messages(chat_id=chat_id, message_ids=media.message_id, revoke=True)
             media.message_id = 0
