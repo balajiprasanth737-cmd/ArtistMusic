@@ -537,10 +537,9 @@ class TgCall(PyTgCalls):
 
         async with lock:
             try:
-            if not await db.get_call(chat_id):
-                return
-
-            message_chat_id = None
+                if not await db.get_call(chat_id):
+                   return
+                   message_chat_id = None
             try:
                 chat = await app.get_chat(chat_id)
                 if chat.type == enums.ChatType.CHANNEL:
