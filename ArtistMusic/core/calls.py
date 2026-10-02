@@ -537,20 +537,20 @@ class TgCall(PyTgCalls):
 
         async with lock:
             try:
-                if not await db.get_call(chat_id):
-                    return
+            if not await db.get_call(chat_id):
+                return
 
-                message_chat_id = None
-                try:
-                    chat = await app.get_chat(chat_id)
-                    if chat.type == enums.ChatType.CHANNEL:
-                        group_id = await db.get_group_for_channel(chat_id)
-                        if group_id:
-                            message_chat_id = group_id
-                except Exception:
-                    pass
+            message_chat_id = None
+            try:
+                chat = await app.get_chat(chat_id)
+                if chat.type == enums.ChatType.CHANNEL:
+                    group_id = await db.get_group_for_channel(chat_id)
+                    if group_id:
+                        message_chat_id = group_id
+             except Exception:
+                pass
 
-            target_chat = message_chat_id if message_chat_id else chat_id
+             target_chat = message_chat_id if message_chat_id else chat_id
             
             loop_mode = await db.get_loop(chat_id)
                     
@@ -564,7 +564,7 @@ class TgCall(PyTgCalls):
                ...
                return
             media = queue.get_next(chat_id)
-        if not media and loop_mode == 10:
+            if not media and loop_mode == 10:
             all_items = queue.get_all(chat_id)  
             if all_items:
                 first_track = all_items[0]
