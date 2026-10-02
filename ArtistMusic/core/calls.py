@@ -643,8 +643,8 @@ class TgCall(PyTgCalls):
                 except Exception as ap_e:
                     logger.error(f"Autoplay failed: {ap_e}")
 
-            if config.AUTO_END:
-                _lang = await lang.get_lang_for(chat_id)
+                    if config.AUTO_END:
+                        _lang = await lang.get_lang_for(chat_id)
                 try:
                     await app.send_message(
                         chat_id=chat_id,
