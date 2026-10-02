@@ -550,32 +550,22 @@ class TgCall(PyTgCalls):
                 except Exception:
                     pass
 
-                target_chat = message_chat_id if message_chat_id else chat_id
-
-                loop_mode = await db.get_loop(chat_id)
-
-                if loop_mode == 1:
-                    media = queue.get_current(chat_id)
-                    if media:
-                        _lang = await lang.get_lang_for(getattr(media, "user_id", None), chat_id)
-                        try:
-                            msg = await app.send_message(chat_id=target_chat, text=_lang["play_again"])
-                            await self.play_media(chat_id, msg, media, message_chat_id=message_chat_id)
-                        except errors.ChannelPrivate:
-                            logger.warning(
-                                f"Bot removed from {chat_id}, cleaning up")
-                            try:
-                                await self.leave_call(chat_id)
-                            except (AttributeError, Exception) as leave_ex:
-                                logger.debug(
-                                    f"Could not leave call for {chat_id}: {leave_ex}")
-                            await db.rm_chat(chat_id)
-                        return
-
-                        media = queue.get_next(chat_id)
-
+            target_chat = message_chat_id if message_chat_id else chat_id
+            
+            loop_mode = await db.get_loop(chat_id)
+                    
+            if loop_mode == 1:
+               media = queue.get_current(chat_id)
+            if media:
+               _lang = await lang.get_lang_for(...)
+            try:
+               ...
+            except errors.ChannelPrivate:
+               ...
+               return
+            media = queue.get_next(chat_id)
         if not media and loop_mode == 10:
-            all_items = queue.get_all(chat_id)
+            all_items = queue.get_all(chat_id)  
             if all_items:
                 first_track = all_items[0]
                 _lang = await lang.get_lang_for(
